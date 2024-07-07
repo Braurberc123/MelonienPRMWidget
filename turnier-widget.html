@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnier-Widget</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+        #widget {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            max-width: 100%;
+            overflow: auto; /* Enable scrolling */
+            height: 70vh; /* Limit height for scrolling */
+        }
+        .match {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+            background-color: #f0f0f0;
+        }
+        .match.win {
+            border-left-color: #2ecc71;
+        }
+        .match.draw {
+            border-left-color: #95a5a6;
+        }
+        .match.lose {
+            border-left-color: #e74c3c;
+        }
+        .time {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #27ae60;
+        }
+        .title {
+            text-align: center;
+            color: #27ae60;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .team {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333333;
+        }
+        .result {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #ffffff;
+            text-transform: uppercase;
+            display: inline-block;
+            width: 60px;
+            text-align: center;
+        }
+        .result.win {
+            background-color: #2ecc71;
+        }
+        .result.draw {
+            background-color: #95a5a6;
+        }
+        .result.lose {
+            background-color: #e74c3c;
+        }
+    </style>
+    <script>
+    // Function to scroll the page automatically
+    function autoScroll() {
+        var widget = document.getElementById("widget");
+        widget.scrollTop += 1; // Scroll down by 1 pixel
+        if (widget.scrollTop >= widget.scrollHeight - widget.clientHeight) {
+            widget.scrollTop = 0; // Start over from the top
+        }
+    }
+    // Call autoScroll function periodically
+    setInterval(autoScroll, 100); // Adjust scroll speed here
+    </script>
+</head>
+<body>
+    <div id="widget">
+        <h2 class="title">Turnier Matches</h2>
+        <div id="matches">
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">A</span>
+                    <span class="result win">Win</span>
+                </div>
+                <div class="teams">
+                    <span class="team">B</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">A</span>
+                    <span class="result win">Win</span>
+                </div>
+                <div class="teams">
+                    <span class="team">A</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">S</span>
+                </div>
+                <div class="teams">
+                    <span class="team">S</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">S</span>
+                </div>
+                <div class="teams">
+                    <span class="team">S</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">A</span>
+                    <span class="result draw">Draw</span>
+                </div>
+                <div class="teams">
+                    <span class="team">A</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">A</span>
+                </div>
+                <div class="teams">
+                    <span class="team">A</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">A</span>
+                </div>
+                <div class="teams">
+                    <span class="team">s</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">S</span>
+                    <span class="result lose">Lose</span>
+                </div>
+                <div class="teams">
+                    <span class="team">S</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">E</span>
+                    <span class="result win">Win</span>
+                </div>
+                <div class="teams">
+                    <span class="team">E</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">2</span>
+                    <span class="result draw">Draw</span>
+                </div>
+                <div class="teams">
+                    <span class="team">2</span>
+                </div>
+            </div>
+            <div class="match">
+                <div class="time">2024-12-11 22:13</div>
+                <div class="teams">
+                    <span class="team">11</span>
+                </div>
+                <div class="teams">
+                    <span class="team">11</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

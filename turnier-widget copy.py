@@ -1,40 +1,24 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import requests
 import json
-import csv  # Import CSV module for exporting to CSV
-import re
-from tkinter import filedialog  # Import regular expression module for validation
 
 # Global variables
 matches = []
 
-def import_from_csv(file_path):
+# Function to fetch matches from API
+def fetch_matches_from_api():
+    url = 'https://primebot.me/api/v1/v1_matches_list'
     try:
-        with open(file_path, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            imported_matches = []
-            for row in reader:
-                match = {
-                    'time': row['Time'],
-                    'teams': [row['Team A'], row['Team B']],
-                    'result': row.get('Result', '')  # Optional: Check if 'Result' exists in the CSV
-                }
-                imported_matches.append(match)
-            
-            # Merge imported matches with existing matches
-            matches.extend(imported_matches)
-            save_matches()
-            display_matches()
-            messagebox.showinfo('Import Successful', f'Matches imported from {file_path}')
-    except FileNotFoundError:
-        messagebox.showerror('File Not Found', f'File not found: {file_path}')
-    except Exception as e:
-        messagebox.showerror('Import Error', f'An error occurred during import: {str(e)}')
-
-# Function to save matches to JSON
-def save_matches():
-    with open('matches.json', 'w') as f:
-        json.dump(matches, f)
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('data', [])
+        else:
+            messagebox.showerror('API Error', f'Failed to fetch data from API. Status code: {response.status_code}')
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror('Connection Error', f'Error connecting to API: {str(e)}')
+    return []
 
 # Function to display matches
 def display_matches():
@@ -72,21 +56,16 @@ def update_result():
 
 # Function to add a new match
 def add_match():
-    new_match_datetime = new_match_datetime_entry.get().strip()
+    new_match_time = new_match_time_entry.get().strip()
     new_match_team_a = new_match_team_a_entry.get().strip()
     new_match_team_b = new_match_team_b_entry.get().strip()
     
-    # Validate date-time format using regular expression
-    if not re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$', new_match_datetime):
-        messagebox.showerror('Invalid Date-Time', 'Please enter a valid date-time in YYYY-MM-DD HH:MM format.')
-        return
-    
-    if new_match_datetime and new_match_team_a and new_match_team_b:
-        new_match = {'time': new_match_datetime, 'teams': [new_match_team_a, new_match_team_b]}
+    if new_match_time and new_match_team_a and new_match_team_b:
+        new_match = {'time': new_match_time, 'teams': [new_match_team_a, new_match_team_b]}
         matches.append(new_match)
         save_matches()
         display_matches()
-        new_match_datetime_entry.delete(0, 'end')
+        new_match_time_entry.delete(0, 'end')
         new_match_team_a_entry.delete(0, 'end')
         new_match_team_b_entry.delete(0, 'end')
 
@@ -102,6 +81,7 @@ def save_matches():
     with open('matches.json', 'w') as f:
         json.dump(matches, f)
 
+# Function to export matches to HTML
 def export_to_html():
     try:
         with open('turnier-widget.html', 'w') as f:
@@ -129,8 +109,6 @@ def export_to_html():
             f.write('            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n')
             f.write('            width: 350px;\n')
             f.write('            max-width: 100%;\n')
-            f.write('            overflow: auto; /* Enable scrolling */\n')
-            f.write('            height: 70vh; /* Limit height for scrolling */\n')
             f.write('        }\n')
             f.write('        .match {\n')
             f.write('            margin-bottom: 20px;\n')
@@ -193,22 +171,6 @@ def export_to_html():
             f.write('            background-color: #e74c3c;\n')
             f.write('        }\n')
             f.write('    </style>\n')
-
-            # JavaScript for automatic scrolling
-            f.write('    <script>\n')
-            f.write('    // Function to scroll the page automatically\n')
-            f.write('    function autoScroll() {\n')
-            f.write('        var widget = document.getElementById("widget");\n')
-            f.write('        widget.scrollTop += 1; // Scroll down by 1 pixel\n')
-            f.write('        if (widget.scrollTop >= widget.scrollHeight - widget.clientHeight) {\n')
-            f.write('            widget.scrollTop = 0; // Start over from the top\n')
-            f.write('        }\n')
-            f.write('    }\n')
-
-            f.write('    // Call autoScroll function periodically\n')
-            f.write('    setInterval(autoScroll, 100); // Adjust scroll speed here\n')
-            f.write('    </script>\n')
-
             f.write('</head>\n')
             f.write('<body>\n')
             f.write('    <div id="widget">\n')
@@ -238,108 +200,81 @@ def export_to_html():
     except Exception as e:
         messagebox.showerror('Export Error', f'An error occurred during export: {str(e)}')
 
-def export_to_csv():
-    try:
-        with open('matches.csv', 'w', newline='') as csvfile:
-            fieldnames = ['Time', 'Team A', 'Team B', 'Result']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            for match in matches:
-                writer.writerow({
-                    'Time': match['time'],
-                    'Team A': match['teams'][0],
-                    'Team B': match['teams'][1],
-                    'Result': match.get('result', '')  # Optional: Check if 'result' exists in match
-                })
-        
-        messagebox.showinfo('Export Successful', 'Matches have been exported to matches.csv')
-    except Exception as e:
-        messagebox.showerror('Export Error', f'An error occurred during export: {str(e)}')
+# Function to fetch and display matches from API
+def fetch_and_display_matches():
+    global matches
+    matches = fetch_matches_from_api()
+    display_matches()
 
-def save_matches():
-    with open('matches.json', 'w') as f:
-        json.dump(matches, f)
-
-# Initialize Tkinter
+# Initialize tkinter
 root = tk.Tk()
-root.title('Turnier Widget')
+root.title('Turnier-Widget')
 
-# Main frame
-main_frame = ttk.Frame(root, padding='20')
-main_frame.grid(row=0, column=0)
+# Create widgets
+matches_frame = ttk.Frame(root)
+matches_frame.pack(padx=10, pady=10)
 
-# Matches container
-matches_container = ttk.Treeview(main_frame, columns=('Time', 'Team A', 'Team B', 'Result'), show='headings', height=10)
+matches_container = ttk.Treeview(matches_frame, columns=('Time', 'Team A', 'Team B', 'Result'), show='headings', height=10)
 matches_container.heading('Time', text='Time')
 matches_container.heading('Team A', text='Team A')
 matches_container.heading('Team B', text='Team B')
 matches_container.heading('Result', text='Result')
-matches_container.column('Time', width=150)
+matches_container.column('Time', width=100)
 matches_container.column('Team A', width=150)
 matches_container.column('Team B', width=150)
 matches_container.column('Result', width=100)
-matches_container.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+matches_container.pack(padx=10, pady=10)
 
-# Result options
-result_var = tk.StringVar()
-result_var.set('')  # Initialize with empty result
+result_var = tk.StringVar(root)
+result_var.set('')  # Default value
 
-result_label = ttk.Label(main_frame, text='Result:')
-result_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
+result_option_menu = ttk.OptionMenu(root, result_var, '', 'Win', 'Draw', 'Lose')
+result_option_menu.pack(pady=5)
 
-result_combobox = ttk.Combobox(main_frame, textvariable=result_var, values=['Win', 'Draw', 'Lose'])
-result_combobox.grid(row=1, column=1, padx=10, pady=10)
+update_result_button = ttk.Button(root, text='Update Result', command=update_result)
+update_result_button.pack(pady=5)
 
-update_result_button = ttk.Button(main_frame, text='Update Result', command=update_result)
-update_result_button.grid(row=1, column=2, padx=10, pady=10)
+new_match_frame = ttk.Frame(root)
+new_match_frame.pack(pady=10)
 
-# Add match section
-new_match_frame = ttk.LabelFrame(main_frame, text='Add New Match')
-new_match_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky='ew')
-
-new_match_datetime_label = ttk.Label(new_match_frame, text='Date-Time (YYYY-MM-DD HH:MM):')
-new_match_datetime_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
-
-new_match_datetime_entry = ttk.Entry(new_match_frame, width=20)
-new_match_datetime_entry.grid(row=0, column=1, padx=10, pady=5)
+new_match_time_label = ttk.Label(new_match_frame, text='Time:')
+new_match_time_label.grid(row=0, column=0, padx=5, pady=5)
+new_match_time_entry = ttk.Entry(new_match_frame)
+new_match_time_entry.grid(row=0, column=1, padx=5, pady=5)
 
 new_match_team_a_label = ttk.Label(new_match_frame, text='Team A:')
-new_match_team_a_label.grid(row=1, column=0, padx=10, pady=5, sticky='w')
-
-new_match_team_a_entry = ttk.Entry(new_match_frame, width=20)
-new_match_team_a_entry.grid(row=1, column=1, padx=10, pady=5)
+new_match_team_a_label.grid(row=1, column=0, padx=5, pady=5)
+new_match_team_a_entry = ttk.Entry(new_match_frame)
+new_match_team_a_entry.grid(row=1, column=1, padx=5, pady=5)
 
 new_match_team_b_label = ttk.Label(new_match_frame, text='Team B:')
-new_match_team_b_label.grid(row=2, column=0, padx=10, pady=5, sticky='w')
-
-new_match_team_b_entry = ttk.Entry(new_match_frame, width=20)
-new_match_team_b_entry.grid(row=2, column=1, padx=10, pady=5)
+new_match_team_b_label.grid(row=2, column=0, padx=5, pady=5)
+new_match_team_b_entry = ttk.Entry(new_match_frame)
+new_match_team_b_entry.grid(row=2, column=1, padx=5, pady=5)
 
 add_match_button = ttk.Button(new_match_frame, text='Add Match', command=add_match)
-add_match_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+add_match_button.grid(row=3, columnspan=2, padx=5, pady=10)
 
-# Delete all matches button
-delete_all_button = ttk.Button(main_frame, text='Delete All Matches', command=delete_all_matches)
-delete_all_button.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
+delete_all_button = ttk.Button(root, text='Delete All Matches', command=delete_all_matches)
+delete_all_button.pack(pady=10)
 
-# Export buttons
-export_html_button = ttk.Button(main_frame, text='Export to HTML', command=export_to_html)
-export_html_button.grid(row=4, column=0, padx=10, pady=10)
+export_button = ttk.Button(root, text='Export to HTML', command=export_to_html)
+export_button.pack(pady=10)
 
-export_csv_button = ttk.Button(main_frame, text='Export to CSV', command=export_to_csv)
-export_csv_button.grid(row=4, column=1, padx=10, pady=10)
+# Button to fetch matches from API
+fetch_from_api_button = ttk.Button(root, text='Fetch Matches from API', command=fetch_and_display_matches)
+fetch_from_api_button.pack(pady=10)
 
-# Import button
-def import_from_csv_gui():
-    file_path = filedialog.askopenfilename(filetypes=[('CSV Files', '*.csv')])
-    if file_path:
-        import_from_csv(file_path)
-
-import_button = ttk.Button(main_frame, text='Import from CSV', command=import_from_csv_gui)
-import_button.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
+# Load initial matches from JSON file
+try:
+    with open('matches.json', 'r') as f:
+        matches = json.load(f)
+except FileNotFoundError:
+    pass
 
 # Display matches initially
 display_matches()
 
-# Run the main loop
+# Run the tkinter main loop
 root.mainloop()
+
